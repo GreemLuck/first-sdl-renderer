@@ -10,18 +10,8 @@ int main(int argc, char* argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_WIDTH, 0, &window, &renderer);
 
-    // Camera setup
-
-    Point O = { 0,0,0 };
-
-    // Scene setup
-
-    Sphere s1 = { { 0, 1, 3 }, 1, { 255, 0, 0 } };
-    Sphere s2 = { { 2, 0, 4 }, 1, { 0, 0, 255 } };
-    Sphere s3 = { { -2, 0, 4 }, 1, { 0, 255, 0 } };
-    Sphere s4 = { { 0, -5000, 0 }, 5000, { 0, 255, 255 } };
-
-    Sphere scene[] = { s1,s2,s3,s4 };
+    int delay = 5000; // 5 seconds of delay
+    uint32_t now = SDL_GetTicks();
 
     // Render loop
     running = true;
@@ -38,7 +28,10 @@ int main(int argc, char* argv[]) {
                 default: {} break;
             }
         }
-
+        int k = (SDL_GetTicks() - now) % delay;
+        double m = (double)k / delay;
+        scene[0].center.y = -1 + 2 * m; // trying to move the red sphere
+        
         // clear
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
@@ -50,7 +43,7 @@ int main(int argc, char* argv[]) {
             for (int y = -WINDOW_WIDTH / 2; y < WINDOW_WIDTH / 2; y++)
             {
                 Point d = c2vp(x, y);
-                Color color = TraceRay(O, NewVector(O, d), 1, FLT_MAX, scene);
+                Color color = TraceRay(O, NewVector(O, d), 1, FLT_MAX, RECURSION_LIMIT);
                 // Color color = { 0, 120, 0 };
                 PutPixel(x, y, color, renderer);
             }
