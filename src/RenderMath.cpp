@@ -1,13 +1,13 @@
 #include "RenderMath.h"
 
-Color BACKGROUND_COLOR = { 0,0,0 };
+Color BACKGROUND_COLOR = { 0,5,20 };
 int RECURSION_LIMIT = 3;
 
 // Ambient, Point and Directional Ligh settings
 double AL_INTENSITY = 0.0;
 double PL_INTENSITY = 0.8;
-Point PL_POSITION = { 2,1,0 };
-double DL_INTENSITY = 0.4;
+Point PL_POSITION = { 0,5,0 };
+double DL_INTENSITY = 0.9;
 Vector DL_DIRECTION = { 1, 4, 4 };
 
 
@@ -17,10 +17,10 @@ Point O = { 0,0,0 };
 
 // Scene setup
 
-Sphere s1 = { { 0, -1, 3 }, 1, { 255, 0, 0 }, 500, 0.2 }; // Red
-Sphere s2 = { { 2, 0, 4 }, 1, { 0, 0, 255 }, 500, 0.3 }; // Blue
-Sphere s3 = { { -2, 0, 4 }, 1, { 0, 255, 0 }, 20, 0.4 }; // Green
-Sphere s4 = { { 0, -5001, 0 }, 5000, { 0, 255, 255 }, 1000 , 0.6}; // Yellow
+Sphere s1 = { { 0, -1, 0 }, 1, { 255, 0, 0 }, 500, 0.5 }; // Red
+Sphere s2 = { { 3, 0, 0 }, 1, { 0, 0, 255 }, 500, 0.4 }; // Blue
+Sphere s3 = { { -3, 0, 0 }, 1, { 0, 255, 0 }, 20, 0.1 }; // Green
+Sphere s4 = { { 0, -5001, 0 }, 5000, { 0, 255, 255 }, 1000 , 0.7}; // Yellow
 
 Sphere scene[] = { s1,s2,s3,s4 };
 
@@ -37,17 +37,24 @@ Point Point::operator+(Vector v) {
 // COLORS
 
 Color Color::operator*(double c) {
-    int r = this->r * c;
-    int g = this->g * c;
-    int b = this->b * c;
-    return { (r > 255) ? 255 : r, (g > 255) ? 255 : g, (b > 255) ? 255 : b , this->a};
+    int r = static_cast<int>(this->r) * c;
+    int g = static_cast<int>(this->g) * c;
+    int b = static_cast<int>(this->b) * c;
+        return { static_cast<uint8_t>((r > 255) ? 255 : r),
+                 static_cast<uint8_t>((g > 255) ? 255 : g),
+                 static_cast<uint8_t>((b > 255) ? 255 : b),
+                 this->a };
 }
 
 Color Color::operator+(Color other) {
-    int r = this->r + other.r;
-    int g = this->g + other.g;
-    int b = this->b + other.b;
-    return { (r > 255) ? 255 : r, (g > 255) ? 255 : g, (b > 255) ? 255 : b , this->a};
+    int r = static_cast<int>(this->r) + static_cast<int>(other.r);
+    int g = static_cast<int>(this->g) + static_cast<int>(other.g);
+    int b = static_cast<int>(this->b) + static_cast<int>(other.b);
+
+    return { static_cast<uint8_t>((r > 255) ? 255 : r),
+             static_cast<uint8_t>((g > 255) ? 255 : g),
+             static_cast<uint8_t>((b > 255) ? 255 : b),
+             this->a };
 }
 
 // VECTORS
@@ -217,6 +224,53 @@ double ComputeLighting(Point p, Vector n, Vector v, double s) {
     double i = 0;
     i += ComputeAmbientLight();
     i += ComputeDirectionalLight(p, n, v, s);
-    i += ComputePointLight(p, n, v ,s);
+    // i += ComputePointLight(p, n, v ,s);
     return i;
+}
+
+Matrix3::Matrix3(double value)
+{
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            data[i][j] = value;
+        }
+    }
+}
+
+Matrix3::Matrix3(std::array<std::array<double, 3>, 3> data):
+    data(data)
+{
+}
+
+double& Matrix3::operator()(size_t row, size_t col)
+{
+    return data[row][col];
+}
+
+const double& Matrix3::operator()(size_t row, size_t col) const
+{
+    return data[row][col];
+}
+
+Vector Matrix3::operator*(const Vector vec) const
+{
+    Vector result;
+    result.x = data[0][0] * vec.x + data[0][1] * vec.y + data[0][2] * vec.z;
+    result.y = data[1][0] * vec.x + data[1][1] * vec.y + data[1][2] * vec.z;
+    result.z = data[2][0] * vec.x + data[2][1] * vec.y + data[2][2] * vec.z;
+    return result;
+}
+
+Matrix3 Matrix3::operator*(const Matrix3 mat) const
+{
+    Matrix3 result(0);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            result.data[i][j] = 0.0;
+            for (int k = 0; k < 3; k++) {
+                result.data[i][j] += data[i][k] * mat.data[k][j];
+            }
+        }
+    }
+    return result;
 }

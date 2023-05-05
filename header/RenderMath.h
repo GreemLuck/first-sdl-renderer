@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <tuple>
+#include <array>
 
 extern int RECURSION_LIMIT;
 
 typedef struct Vector {
 	double x, y, z;
 	Vector operator*(double);
+	Vector operator*(Vector);
 	Vector operator-(Vector);
 } Vector;
 
@@ -20,8 +22,18 @@ typedef struct Point {
 	Point operator+(Vector);
 } Point;
 
+typedef struct Matrix3 {
+	std::array<std::array<double, 3>, 3> data;
+	Matrix3(double value);
+	Matrix3(std::array<std::array<double, 3>, 3> data);
+	double& operator()(size_t row, size_t col);
+	const double& operator()(size_t row, size_t col) const;
+	Vector operator*(const Vector vec) const;
+	Matrix3 operator*(const Matrix3 mat) const;
+};
+
 typedef struct Color {
-	int r, g, b, a;
+	uint8_t r, g, b, a;
 	Color operator*(double);
 	Color operator+(Color);
 } Color;
